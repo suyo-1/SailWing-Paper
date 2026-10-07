@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080">
+<rect width="1500" height="1080" fill="#FFFFFF"/>
+<defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#174A6E"/></marker><marker id="arrow-teal" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#137C82"/></marker></defs>
+<style>text{font-family:"Microsoft YaHei","SimHei",sans-serif}</style>
+<rect x="55" y="45" width="430" height="140" rx="20" fill="#F2F7F9" stroke="#174A6E" stroke-width="3"/>
+<text x="270.0" y="77" text-anchor="middle" dominant-baseline="middle" font-size="30" font-weight="700" fill="#174A6E">船舶与推进数据</text>
+<text x="270.0" y="116.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">主尺度、阻力、螺旋桨</text>
+<text x="270.0" y="150.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">主机功率与油耗率</text>
+<rect x="535" y="45" width="430" height="140" rx="20" fill="#EFF8F7" stroke="#137C82" stroke-width="3"/>
+<text x="750.0" y="77" text-anchor="middle" dominant-baseline="middle" font-size="30" font-weight="700" fill="#137C82">风帆数据</text>
+<text x="750.0" y="116.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">翼帆或转筒</text>
+<text x="750.0" y="150.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">气动系数与设备参数</text>
+<rect x="1015" y="45" width="430" height="140" rx="20" fill="#F2F7F9" stroke="#174A6E" stroke-width="3"/>
+<text x="1230.0" y="77" text-anchor="middle" dominant-baseline="middle" font-size="30" font-weight="700" fill="#174A6E">航线与气象数据</text>
+<text x="1230.0" y="117.0" text-anchor="middle" dominant-baseline="middle" font-size="21" font-weight="400" fill="#243746">航路点、风场及可用的浪流数据</text>
+<text x="1230.0" y="149.0" text-anchor="middle" dominant-baseline="middle" font-size="21" font-weight="400" fill="#243746">预处理航线气象文件</text>
+<path d="M 270,185 L 270,220 L 750,220 L 750,255" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 750,185 L 750,255" fill="none" stroke="#137C82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<path d="M 1230,185 L 1230,220 L 750,220 L 750,255" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="330" y="255" width="840" height="115" rx="20" fill="#F6F9FA" stroke="#174A6E" stroke-width="3"/>
+<text x="750.0" y="287" text-anchor="middle" dominant-baseline="middle" font-size="29" font-weight="700" fill="#174A6E">输入校验与航线环境处理</text>
+<text x="750.0" y="330.5" text-anchor="middle" dominant-baseline="middle" font-size="22" font-weight="400" fill="#243746">计算航向和航程；合成表观风；按可用数据处理波浪增阻与海流航时</text>
+<path d="M 750,370 L 750,425" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="390" y="425" width="720" height="105" rx="20" fill="#EFF8F7" stroke="#137C82" stroke-width="3"/>
+<text x="750.0" y="457" text-anchor="middle" dominant-baseline="middle" font-size="29" font-weight="700" fill="#137C82">逐航点计算风帆助推力</text>
+<text x="750.0" y="495.5" text-anchor="middle" dominant-baseline="middle" font-size="22" font-weight="400" fill="#243746">按相对风遍历攻角或转筒比，选取航向推力较大的工况</text>
+<path d="M 750,530 L 750,565 L 390,565 L 390,610" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 750,565 L 1110,565 L 1110,610" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="55" y="610" width="670" height="220" rx="20" fill="#F2F7F9" stroke="#174A6E" stroke-width="3"/>
+<text x="390.0" y="642" text-anchor="middle" dominant-baseline="middle" font-size="29" font-weight="700" fill="#174A6E">无帆基准工况</text>
+<text x="390.0" y="704.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">船舶阻力 + 波浪增阻</text>
+<text x="390.0" y="738.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">螺旋桨匹配，计算推进功率</text>
+<text x="390.0" y="772.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">按主机负荷与油耗率求航段油耗</text>
+<rect x="775" y="610" width="670" height="220" rx="20" fill="#EFF8F7" stroke="#137C82" stroke-width="3"/>
+<text x="1110.0" y="642" text-anchor="middle" dominant-baseline="middle" font-size="29" font-weight="700" fill="#137C82">有帆助推工况</text>
+<text x="1110.0" y="704.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">船舶阻力 − 风帆推力 + 波浪增阻</text>
+<text x="1110.0" y="738.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">螺旋桨匹配，计算推进功率</text>
+<text x="1110.0" y="772.0" text-anchor="middle" dominant-baseline="middle" font-size="23" font-weight="400" fill="#243746">按主机负荷与油耗率求航段油耗</text>
+<path d="M 390,830 L 390,860 L 750,860 L 750,895" fill="none" stroke="#174A6E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M 1110,830 L 1110,860 L 750,860 L 750,895" fill="none" stroke="#137C82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow-teal)"/>
+<rect x="260" y="895" width="980" height="82" rx="20" fill="#F2F6F8" stroke="#174A6E" stroke-width="3"/>
+<text x="750.0" y="936.0" text-anchor="middle" dominant-baseline="middle" font-size="27" font-weight="700" fill="#174A6E">累计航段油耗、比较节油效果；参数齐全时估算航次 CII*</text>
+<text x="750" y="1008" text-anchor="middle" dominant-baseline="middle" font-size="19" font-weight="400" fill="#526875">* CII 为单航次、仅主机估算，不是年度评级；当前未扣除旋筒驱动耗电</text>
+<text x="750" y="1040" text-anchor="middle" dominant-baseline="middle" font-size="19" font-weight="400" fill="#526875">未计辅机与锅炉油耗；默认月平均风场不代表实时天气；航段数 = 航路点数 − 1</text>
+</svg>

@@ -750,6 +750,7 @@ T_{P,i}=\frac{R_T(V_s)-F_{T,i}}{1-t},\qquad V_a=(1-w)V_s.
 无帆工况取 $F_{T,i}=0$。其中，$R_T-F_{T,i}$ 表示需要由螺旋桨承担的剩余纵向力需求。本文暂不计入翼帆侧向力引起的漂角、横倾及操舵附加阻力。
 
 \subsubsection{螺旋桨敞水特性与工作点求解}
+\label{sec:propeller-open-water}
 
 为适应不同的输入条件，本文提供敞水特性数据导入、已知几何参数的性能计算以及基于图谱回归的设计点匹配三种方式，获得螺旋桨敞水特性。各方式统一采用进速系数 $J$、推力系数 $K_T$、转矩系数 $K_Q$ 和敞水效率 $\eta_0$ 描述螺旋桨性能，其定义为
 \begin{equation}
@@ -793,7 +794,95 @@ P_{D,i}=\frac{\left[R_T(V_s)-F_{T,i}\right]V_s}{\eta_{D,i}}.
 
 \section{计算流程与模型验证}
 \subsection{计算流程及程序实现}
-\todo{添加参数输入、航线风场匹配、助推力计算、推进功率计算和油耗评估流程图。}
+本程序总计算流程如图~\ref{fig:calculation-flow} 所示。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/calculation-flow.png}
+\caption{风帆助推船舶航次能耗计算流程}
+\label{fig:calculation-flow}
+\end{figure}
+
+
+本文建立的计算程序用于估算船舶在给定航线和航速下，安装风帆助推装置前后的推进功率与主机燃油消耗，并据此比较航次层面的节油效果。程序由船舶参数、风帆助推、航线气象和结果分析等模块组成。计算以航线相邻航路点构成的航段为基本单元，依次完成环境数据处理、助推力计算、船舶推进功率计算和燃油消耗积分。
+
+计算开始前，程序读取用户设置的船舶航速、船舶主参数、航线以及船舶阻力、螺旋桨和主机油耗率数据。船舶阻力数据可由 Excel 导入，也可由程序内的阻力计算模块生成。两种方式统一整理为航速、阻力、伴流分数、推力减额分数和相对旋转效率五列。程序检查阻力数据的列数、数值有效性及航速递增关系，并要求计算航速处于阻力数据覆盖范围内。螺旋桨静水特性有3种导入方式：对于已有敞水性能数据的螺旋桨，采用Excel数据导入方式；对于几何参数已知但缺少敞水性能数据的螺旋桨，采用已知几何参数的性能计算方式；对于需要根据船舶设计工况确定螺旋桨参数的情况，采用基于图谱回归的设计点匹配方式。这三种方式的具体计算细节在\ref{sec:propeller-open-water}中有详细阐释。主机油耗率用Excel导入即可。各数据导入界面见图~\ref{fig:ui-ship-inputs}。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/ui-ship.png}
+\caption{船舶参数模块界面}
+\label{fig:ui-ship}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.48\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-particulars.png}
+\par\small （a）船舶主尺度
+\end{minipage}\hfill
+\begin{minipage}{0.48\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-resistance.png}
+\par\small （b）阻力
+\end{minipage}
+\par\medskip
+\begin{minipage}{0.48\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-propeller.png}
+\par\small （c）螺旋桨静水特性
+\end{minipage}\hfill
+\begin{minipage}{0.48\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-sfoc.png}
+\par\small （d）主机油耗
+\end{minipage}
+\caption{船舶参数与推进性能数据输入界面}
+\label{fig:ui-ship-inputs}
+\end{figure}
+
+
+风帆助推力根据航路点表观风条件逐点求得。本模块页面见图~\ref{fig:ui-sails}。翼帆模式读取升力系数和阻力系数随攻角、雷诺数变化的数据，在候选数据中选取使航向分力最大的工况；转筒模式读取升力系数、阻力系数及转筒比数据，在候选转筒比中选取航向助推力最大的工况。两种模式均根据相对风动压、设备参考面积和气动力系数计算升力与阻力，再分解为沿航向推力和横向力。当前程序采用固定的设备数量和翼帆面积设置；转筒直径与高度可由用户输入。该步骤输出各航路点的助推力，并将其用于后续有帆工况的船舶阻力修正。
+
+\begin{figure}[htbp]
+\centering
+\begin{minipage}{0.95\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-wing.png}
+\par\small （a）翼帆页面
+\end{minipage}
+\par\medskip
+\begin{minipage}{0.95\linewidth}
+\centering
+\includegraphics[width=\linewidth]{figures/ui-rotor.png}
+\par\small （b）转筒帆页面
+\end{minipage}
+\caption{翼帆与转筒帆参数及气动性能界面}
+\label{fig:ui-sails}
+\end{figure}
+
+
+航线模块读取各航路点的经纬度，并利用相邻航路点计算航段距离和航向。本模块页面见图~\ref{fig:ui-navigation}。风场数据可载入预先利用下载脚本生成的逐航路点 ERA5 航线气象文件。程序将风场矢量与船舶航速矢量合成，得到各航路点的表观风速和风向。载入波浪数据时，程序根据有效波高和船宽估算波浪增阻，并可根据航向与波向应用方向修正；载入海流数据时，海流沿航向的分量用于调整对地航速和航段航行时间。推进功率计算仍采用船舶对水航速。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/ui-navigation.png}
+\caption{航线气象模块界面}
+\label{fig:ui-navigation}
+\end{figure}
+
+
+对于无帆工况，程序以静水阻力为基础；对于有帆工况，程序从船舶阻力中扣除风帆沿航向的助推力。若启用波浪增阻，波浪增阻同时加入两种工况。随后，程序结合伴流分数、推力减额分数、相对旋转效率、螺旋桨直径及螺旋桨静水特性，求解螺旋桨工作点和推进功率。螺旋桨特性数据按线性插值处理。每个航段的推进功率取其两端航路点功率的平均值。
+
+主机燃油消耗由航段推进功率、对应负荷下的主机比油耗和航段航行时间共同确定。程序使用输入的主机标定功率计算负荷率，再从主机油耗率曲线插值得到相应比油耗。航段油耗按“比油耗 × 航段平均功率 × 航段时间”计算并沿航线累加，分别得到无帆和有帆工况的总油耗。海流数据可通过改变航段航行时间影响航次油耗。程序将无帆与有帆总油耗之差作为节油量，并以无帆总油耗为基准计算航次节油率；各航段节油率用于结果曲线展示。航路包含 $N$ 个航路点时，对应 $N-1$ 个航段。
+
+程序还可基于上述主机航次油耗计算单航次 CII 估算值。该功能采用船舶载重吨（DWT）和航程，结合所选燃料的二氧化碳转换系数，分别计算使用风帆前后的航次碳强度。该结果为仅计主机油耗的航次估算，不是 IMO 年度 CII 评级，不包含辅机、锅炉、旋筒驱动耗电及年度评级所需的其他项目。
+
+程序通过输入检查、阻力数据校验、计算结果有效性检查及自动化测试，对模块调用顺序和数值处理进行软件层面的核对。此类检查用于发现输入格式错误、参数缺失、计算范围越界和程序回归问题，并不等同于模型的实船精度验证。计算结果的可靠性取决于船舶阻力、螺旋桨特性、风帆气动力、主机油耗率和环境数据是否与目标船舶及工况相匹配。本文将其定位为给定输入条件下的风帆助推效果估算工具。模型精度仍需通过独立的水池试验、实船功率与油耗记录或其他适用的基准数据进行验证。
+\FloatBarrier
+
 \subsection{模型验证与基准工况对比}
 \todo{使用试验数据、公开算例或可靠计算结果开展对比，说明误差和适用范围。}
 
