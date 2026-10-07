@@ -1,0 +1,7 @@
+build/
+*.bak
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.xdv
