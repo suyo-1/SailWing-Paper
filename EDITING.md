@@ -10,7 +10,9 @@
 
 中文摘要保留用户已填写的内容，英文摘要使用对应译文。当前中文题目仍聚焦翼帆，而摘要涵盖翼帆及转筒帆，后续定稿时应结合研究范围统一题目表述。正文数据与模型内容本次保持原样。
 
-使用 VS Code 打开项目根目录 `D:\风帆助推\SailWing_SourceCodeV11`，然后打开 `paper/main.tex`。工作区配置使用现有 MiKTeX 的 XeLaTeX，每次构建连续编译两次以更新公式编号和交叉引用，不依赖 Perl。
+使用 VS Code 打开项目根目录 `D:\风帆助推\SailWing_SourceCodeV11`，然后打开 `paper/main.tex`；也可以单独打开 `paper` 文件夹并编辑 `main.tex`。两个目录均提供工作区 LaTeX 配置，使用现有 MiKTeX 的 XeLaTeX，每次构建连续编译两次以更新公式编号和交叉引用，不依赖 Perl。
+
+单独打开 `paper` 时，VS Code 不会读取父目录的 `.vscode/settings.json`，因此论文目录内另有 `.vscode/settings.json`。如果输出日志仍显示 `latexmk` 或缺少 `perl`，检查当前打开目录的工作区配置，并在“构建 LaTeX 项目”中选择 `XeLaTeX × 2`。使用编辑器右上角 LaTeX Workshop 的“构建 LaTeX 项目”按钮可避免其他扩展或焦点影响快捷键。
 
 - 保存 `.tex` 文件后自动编译；手动编译按 `Ctrl+Alt+B`。
 - PDF 输出为 `paper/build/main.pdf`。按 `Ctrl+Alt+V` 使用 LaTeX Workshop 在右侧打开预览。

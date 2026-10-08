@@ -1,0 +1,41 @@
+{
+    "latex-workshop.latex.tools": [
+        {
+            "name": "xelatex-local",
+            "command": "D:/program/miktex/miktex/bin/x64/xelatex.exe",
+            "args": [
+                "-synctex=1",
+                "-interaction=nonstopmode",
+                "-file-line-error",
+                "-halt-on-error",
+                "-output-directory=%OUTDIR%",
+                "%DOC%"
+            ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        { "name": "XeLaTeX × 2", "tools": ["xelatex-local", "xelatex-local"] }
+    ],
+    "latex-workshop.latex.recipe.default": "first",
+    "latex-workshop.latex.build.enableMagicComments": false,
+    "latex-workshop.latex.outDir": "%DIR%/build",
+    "latex-workshop.latex.autoBuild.run": "onSave",
+    "latex-workshop.linting.chktex.enabled": false,
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.view.pdf.tab.editorGroup": "right",
+    "[latex]": {
+        "editor.wordWrap": "on"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.jj": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/d:\\风帆助推\\SailWing_SourceCodeV11\\paper\\main.aux": true,
+        "**/d:\\风帆助推\\SailWing_SourceCodeV11\\paper\\main.log": true,
+        "**/d:\\风帆助推\\SailWing_SourceCodeV11\\paper\\main.gz": true,
+        "**/d:\\风帆助推\\SailWing_SourceCodeV11\\paper\\main.out": true
+    }
+}
