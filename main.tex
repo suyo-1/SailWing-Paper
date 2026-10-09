@@ -2,6 +2,7 @@
 \documentclass[UTF8,a4paper,twoside,zihao=5,fontset=windows]{ctexart}
 \usepackage[left=23mm,right=23mm,top=28mm,bottom=25.4mm,headheight=12pt,headsep=5mm,footskip=10mm]{geometry}
 \usepackage{amsmath,amssymb}
+\usepackage{cite}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
@@ -46,7 +47,7 @@
 % 逻辑冲突占位：代码实现存在矛盾、需修改代码后才能回填的内容。
 \newcommand{\needfix}[1]{\par\noindent{\songti【需裁决：#1】}\par}
 
-\title{考虑船桨匹配的翼帆助推船舶航程节油评估方法}
+\title{风帆助推船舶节油计算软件FAST SailWing的算法与实现}
 \author{作者姓名（待填写）\\单位名称（待填写）}
 \date{}
 
@@ -55,7 +56,7 @@
 \thispagestyle{firstpage}
 \begin{center}
 \vspace*{8pt}
-{\heiti\fontsize{22pt}{28pt}\selectfont 考虑船桨匹配的翼帆助推船舶航程节油评估方法\par}
+{\heiti\fontsize{22pt}{28pt}\selectfont 风帆助推船舶节油计算软件FAST SailWing的算法与实现\par}
 \vspace{12pt}
 {\kaishu\fontsize{12pt}{17pt}\selectfont 作者姓名（待填写）\par}
 \vspace{5pt}
@@ -67,13 +68,11 @@
 \begin{conferenceabstract}
 论文针对航运业节能减排需求，开发风帆助推船节能计算软件SailWing，并建立面向实际航线的船舶风帆助推能效分析方法。首先，基于船舶实际航迹开展航段划分与航迹特征提取，结合ERA5等气象数据对航行过程中的风速、风向等环境参数进行时空匹配，并通过气象聚类提取典型航行气象条件，为风帆性能及节能效果计算提供环境输入。在此基础上，针对翼帆、转筒帆建立相应气动性能计算模型。再进一步建立船体阻力、螺旋桨性能及燃油消耗计算模块，引入船桨相互作用参数，形成“阻力—螺旋桨—油耗”计算链路，并耦合风帆助推力开展船机桨帆匹配及节能效果分析。研究可为不同航线及气象条件下的风帆选型、运行参数优化和船舶绿色航行提供计算依据。
 \par\noindent\textnormal{关键词：}\quad 翼帆助推；船桨匹配；航线风场；燃油消耗；节能评估
-\par\noindent 中图分类号：待填写\hfill 文献标志码：A
 \end{conferenceabstract}
-\begingroup\renewcommand{\thefootnote}{}\footnotetext{基金项目：待填写（无基金资助时删除此项）。}\endgroup
 
 \vspace{14pt}
 \begin{center}
-{\bfseries\fontsize{16pt}{23pt}\selectfont A voyage fuel-saving assessment method for wing-sail-assisted ships considering hull--propeller matching\par}
+{\bfseries\fontsize{16pt}{23pt}\selectfont Algorithms and implementation of FAST SailWing software for fuel-saving calculations of wind-assisted ships\par}
 \vspace{5pt}
 {\fontsize{12pt}{17pt}\selectfont Author Name (to be completed)\par}
 \vspace{3pt}
@@ -86,25 +85,70 @@ To address the need for energy conservation and emission reduction in the shippi
 \par\textbf{Key words:}\quad wing-sail assistance; hull--propeller matching; route wind fields; fuel consumption; energy-saving assessment
 \par\endgroup
 
-\section*{作者简介}
-{\renewcommand{\baselinestretch}{1}\songti\fontsize{9pt}{17pt}\selectfont\noindent 作者姓名：待填写；学历或职称、研究方向：待填写。\par\noindent 通讯作者：待填写。\par}
+\par\noindent 中图分类号：待填写\hfill 文献标志码：A
+
 
 \section{引言}
 
-风帆助推历史悠久。随着环境问题加剧和绿色航运理念普及，风帆这一古老的助推方式重新受到工程界重视，按形状与原理可分为风筝帆、翼帆和转筒帆等。风筝帆又称天帆，单位面积推进功率约为传统风帆的六倍，主机故障时还可作应急推进动力，但逆风或船速较高时失效。2007 年“天帆”公司建造的“白鲸天帆号”以约 160 平方米的双层可充气风帆在 100—300 米高空辅助推进，节油率约为 10\%～35\%。
+航运业温室气体减排压力持续增大，风力辅助推进因可直接利用海上风能、降低主机化石燃料消耗而受到关注。翼帆、Flettner 转筒帆等装置已进入实船应用阶段，但其节油效果并不等于装置在理想来流下的推力收益，而是同时受船舶阻力特性、螺旋桨工作点、主机负荷、实际航线风浪流环境以及控制策略影响\textsuperscript{\cite{lr2021flettner,lu2020,tillig2020,vigna2023}}。因此，建立能够由实际航行环境出发、并与船体-螺旋桨-主机推进链耦合的节油评估方法，是风帆选型、安装方案比较和运行参数优化的重要基础。
 
-船用翼帆是船上为节能装设、直接借助海上风能产生推进力的机翼形风帆，包括帆体、操帆装置及其控制系统等。2018 年交付的 30.8 万吨超大型原油船（VLCC）“凱力”号验证了翼型帆在超大型船舶上的减排效果；Wallenius Marine 设计的滚装帆船 Oceanbird 长 200 米，靠五片 80 米高的翼帆可减少 90\% 排放。
+国外学者较早从风帆推力与航线节能潜力入手开展评估。Traut 等\textsuperscript{\cite{traut2014}}将风筝帆和转筒帆的数值模型与 5 条典型航线风场耦合，计算了推力及推进功率贡献，指出风帆可作为远洋船舶的重要辅助动力，但其分析主要停留在平均功率贡献层面。Viola 等\textsuperscript{\cite{viola2015}}提出面向风力助推船舶设计的数值方法，将风帆气动载荷与船体水动力响应纳入统一分析框架。Lu 和 Ringsberg\textsuperscript{\cite{lu2020}}采用四自由度船舶性能模型比较转筒帆、翼帆和 DynaRig，在某阿芙拉型油船航线上得到的节油率为 5.6\%-8.9\%，并指出最优装置及运行方式随船型、航速、航线和气象条件变化。Tillig 和 Ringsberg\textsuperscript{\cite{tillig2020}}进一步发展考虑气动-水动力相互作用的 ShipCLEAN 模型，实现转筒帆转速独立控制，算例中油船和滚装船的节油率分别达到 30\% 和 14\%，说明推进系统匹配和运行控制会显著改变评估结果。在风帆气动性能方面，Li 等\textsuperscript{\cite{li2020}}利用 RANS 方法研究双段翼帆的弯度、襟翼转轴位置和攻角等参数，并通过试验数据验证模型；Zhu 等\textsuperscript{\cite{zhu2023}}采用 URANS 方法分析新月形刚性翼帆，比较其与 NACA0015 翼型的推进性能，并在算例中得到约 9\% 的燃油节省，同时指出流动分离和翼尖涡会限制气动收益。Lloyd's Register 开发的 Flettner 节油计算器已考虑船型、航线、季节、螺旋桨性能、主机负荷油耗率及转筒驱动能耗\textsuperscript{\cite{lr2021flettner}}，为工程初步筛选提供了工具，但仍以简化输入为主。
 
-转筒帆（Flettner Rotor）依靠马格努斯效应产生推进力：电机驱动垂直转筒旋转，风吹过转筒时产生推力，因而在各种风向条件下都能提供稳定的辅助动力。2024 年 Norsepower 与 Union Maritime Limited 签约，为其成品油轮船队配备挪世航力旋筒风帆，其中四艘新造船由国内船厂建造，另八艘用于后期加装。
+随着研究重点由“风帆能提供多少推力”转向“船舶实际能节省多少燃油”，评估模型逐渐纳入航线气象、推进系统和运行优化。Bentin 等\textsuperscript{\cite{bentin2016}}基于一艘 17,500 DWT 多用途货船连续一年的实测数据建立风浪影响模型，并以分支定界法优化航线能耗，表明航线调整本身即可改变风帆收益。Seddiek 和 Ammar\textsuperscript{\cite{seddiek2021}}以散货船为对象评估转筒帆的节能与排放效果。Vigna 和 Figari\textsuperscript{\cite{vigna2023}}建立转筒帆-柴油机-可调桨联合模型，求解主机和螺旋桨工作点，并将转筒驱动功率纳入总推进功率和 CO$_2$ 排放计算，强调风帆与常规推进系统的合理匹配是实现节油的前提。Charlou 等\textsuperscript{\cite{charlou2023}}开发开源六自由度评估工具 xWASP\_CN，可按可用数据选择不同精度的水动力与气动力模型，并进行稳态和非稳态性能预测，为不同设计阶段的风力助推评估提供了通用框架。总体而言，国外研究已从单一装置性能分析扩展到船-机-桨-帆耦合和航线优化，但不同模型在环境数据处理、推进效率假设和验证尺度上仍存在较大差异。
 
-上述技术已在商业航运中获得应用与验证，但风帆的安装与使用仍需按船舶个性化定制，其对船舶性能的影响也缺乏系统研究。劳氏船级社的 Flettner 转筒帆节油计算器可按船型、航线及季节评估节油潜力，并计入螺旋桨性能、主机负荷相关燃油消耗率及转筒驱动能耗，为初步评估提供了工具基础\textsuperscript{\cite{lr2021flettner}}。
+国内学者近年来也围绕风帆助推船舶的节能评估和航线应用开展了研究。Wang 等\textsuperscript{\cite{wang2022}}综述了转筒帆、牵引风筝、翼帆和软帆的应用及减排贡献，指出风帆效果受船型、航线和技术成熟度制约。Li 和 Qiao\textsuperscript{\cite{liqiao2019}}构建风帆助推船舶航线优化模型，以航行时间和主机功率为约束，采用模拟退火算法分别求解最小燃油消耗和最短航行时间，并以 76,000 DWT 船舶验证了模型可行性。Sun 等\textsuperscript{\cite{sun2022}}面向 CII 降低目标提出改进 A* 气象航线优化框架，融合船舶设计数据、天气预报和历史航行信息，以中国至中东 VLCC 航线为算例降低了总燃油消耗。Ma 等\textsuperscript{\cite{ma2023}}提出基于典型航线风资源分析的风帆助推船节能评估方法，建立考虑翼帆作用力的三自由度运动模型，通过时空插值形成风场概率矩阵和翼帆力矩阵，某中国至中东航线油船 2021 年的年节油率超过 5.37\%，单航次最高可达 9.54\%。这些工作表明，国内研究正在从技术综述、航线优化和风资源统计，逐步转向面向典型航线的节能评估。
 
-面向实际航线的环境差异与不同风帆形式的比较需求，本文开发风帆助推船节能计算软件 SailWing，整合实船基础参数与航行数据，建立风帆—实船一体化能效计算模型。主要工作包括：基于实际航迹匹配 ERA5 等气象数据，用 K-means 聚类提取典型航行气象工况并结合航迹特征划分航段，为航线能效分析提供环境输入；建立翼帆与转筒帆的气动性能计算模型；支持螺旋桨敞水数据导入、几何参数性能计算和设计点匹配三种方式，求解有帆与无帆工况下的螺旋桨工作点，并结合负荷相关燃油消耗率计算航程油耗。与既有工具相比，本文扩展了可选帆型与航线，可实时分析航线风场下的风帆推力，计入船机桨帆匹配，评估不同安装位置、数量、船舶参数与航线的节能效果，给出各航段节省燃油与 CO$_2$ 排放的收益。
+尽管已有研究奠定了风力助推性能评估基础，但仍存在以下局限。第一，部分研究采用典型航线、月平均风场或固定航速与航向，难以反映实际航迹在时间和空间上的连续变化；再分析气象资料与 AIS 航迹的时空匹配、代表性气象工况提取及航段划分仍有待系统解决\textsuperscript{\cite{sun2022,ma2023}}。第二，许多气动或船舶性能模型将螺旋桨效率和主机燃油消耗率视为定值，未充分求解翼帆助推后螺旋桨工作点偏离设计点的过程；即使考虑了机桨匹配，也多针对单一帆型、单一船型或有限工况\textsuperscript{\cite{lu2020,tillig2020,vigna2023}}。第三，波、浪、流及风帆侧向力引起的漂角、横倾和操舵附加阻力常被简化处理，而船体阻力、伴流与推力减额、螺旋桨敞水特性以及主机负荷相关燃油消耗率的计算方法和数据来源也不统一\textsuperscript{\cite{holtrop1982,holtrop1984,harvald1983,molland2011,bentin2016,seddiek2021}}。第四，现有工具中，有些侧重气动性能，有些侧重航线优化或机桨匹配，能够同时支持多种帆型、实际航线环境、不同帆数量和安装位置比较，并输出航段级油耗与节油率的集成评估软件仍较少\textsuperscript{\cite{lr2021flettner,charlou2023}}。第五，模型验证多依赖数值算例、模型试验或少量实船数据，不同研究之间的节油率缺乏统一工况和误差评价，结果可比性不足\textsuperscript{\cite{viola2015,li2020,zhu2023}}。
+
+针对上述问题，本文以风帆助推船舶的实际航线和航程节油评估为对象，构建从环境输入到燃油消耗的完整计算链路。研究首先基于实际航迹进行航段划分与特征提取，将 ERA5 风、浪资料及 CMEMS 海流资料与航迹点进行时空匹配，并通过 K-means 聚类提取典型气象工况；其次，建立翼帆和转筒帆气动性能模型，计算不同相对风条件下的风帆推力；然后，耦合船舶静水阻力、船体-螺旋桨相互作用、螺旋桨敞水特性和主机负荷相关燃油消耗率，分别求解有帆与无帆工况下的螺旋桨工作点，评估风帆推力对推进效率和航程油耗的影响；最后，开发风帆助推船节能计算软件 SailWing，实现不同帆型、风帆数量及布置、船舶参数和航线条件下的节油效果对比，并给出各航段的节油量与节油率。
+
+本文主要内容安排如下：第~\ref{sec:implementation}~节介绍计算流程及程序实现；第~\ref{sec:meteo}~节介绍实际航线气象环境提取与典型气象工况划分；第~\ref{sec:aero}~节建立风帆气动力计算模型；第~\ref{sec:ship_propeller}~节介绍船舶阻力与螺旋桨工作点计算；第~\ref{sec:fuel-cii}~节介绍主机燃油消耗、航程节油率与航次碳强度计算；第~\ref{sec:case}~节开展典型航线算例分析；第~\ref{sec:conclusion}~节总结主要结论并指出后续研究方向。
 
 \FloatBarrier
 
-\section{翼帆助推船舶节油评估模型}
-\subsection{实际航线气象环境提取与典型气象工况划分}
+\section{计算流程及程序实现}
+\label{sec:implementation}
+
+本程序总计算流程如图~\ref{fig:calculation-flow} 所示。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/calculation-flow.png}
+\caption{风帆助推船舶航次能耗计算流程}
+\label{fig:calculation-flow}
+\end{figure}
+
+
+本文建立的计算程序用于估算船舶在给定航线和航速下，安装风帆助推装置前后的推进功率与主机燃油消耗，并据此比较航次层面的节油效果。程序由船舶参数、风帆助推、航线气象和结果分析等模块组成。计算以航线相邻航路点构成的航段为基本单元，依次完成环境数据处理、助推力计算、船舶推进功率计算和燃油消耗积分。
+
+计算开始前，程序读取用户设置的船舶航速、船舶主参数、航线以及船舶阻力、螺旋桨和主机油耗率数据。船舶阻力数据可由 Excel 导入，也可由程序内的阻力计算模块生成。两种方式统一整理为航速、阻力、伴流分数、推力减额分数和相对旋转效率五列。程序检查阻力数据的列数、数值有效性及航速递增关系，并要求计算航速处于阻力数据覆盖范围内。螺旋桨静水特性有3种导入方式：对于已有敞水性能数据的螺旋桨，采用Excel数据导入方式；对于几何参数已知但缺少敞水性能数据的螺旋桨，采用已知几何参数的性能计算方式；对于需要根据船舶设计工况确定螺旋桨参数的情况，采用基于图谱回归的设计点匹配方式。这三种方式的具体计算细节在第~\ref{sec:propeller-open-water}~节中有详细阐释。主机油耗率用Excel导入即可。
+
+
+
+
+
+
+
+风帆助推力根据航路点表观风条件逐点求得。翼帆模式读取升力系数和阻力系数随攻角、雷诺数变化的数据，在候选数据中选取使航向分力最大的工况；转筒模式读取升力系数、阻力系数及转筒比数据，在候选转筒比中选取航向助推力最大的工况。两种模式均根据相对风动压、设备参考面积和气动力系数计算升力与阻力，再分解为沿航向推力和横向力。当前程序采用固定的设备数量和翼帆面积设置；转筒直径与高度可由用户输入。该步骤输出各航路点的助推力，并将其用于后续有帆工况的船舶阻力修正。
+
+
+
+
+航线模块读取各航路点的经纬度，并利用相邻航路点计算航段距离和航向。风场数据可载入预先利用下载脚本生成的逐航路点 ERA5 航线气象文件。程序将风场矢量与船舶航速矢量合成，得到各航路点的表观风速和风向。载入波浪数据时，程序根据有效波高和船宽估算波浪增阻，并可根据航向与波向应用方向修正；载入海流数据时，海流沿航向的分量用于调整对地航速和航段航行时间。推进功率计算仍采用船舶对水航速。
+
+
+
+
+对于无帆工况，程序以静水阻力为基础；对于有帆工况，程序从船舶阻力中扣除风帆沿航向的助推力。若启用波浪增阻，波浪增阻同时加入两种工况。随后，程序结合伴流分数、推力减额分数、相对旋转效率、螺旋桨直径及螺旋桨静水特性，求解螺旋桨工作点和推进功率。螺旋桨特性数据按线性插值处理。每个航段的推进功率取其两端航路点功率的平均值。
+
+主机燃油消耗由航段推进功率、对应负荷下的主机比油耗和航段航行时间共同确定。程序使用输入的主机标定功率计算负荷率，再从主机油耗率曲线插值得到相应比油耗。航段油耗按“比油耗 × 航段平均功率 × 航段时间”计算并沿航线累加，分别得到无帆和有帆工况的总油耗。海流数据可通过改变航段航行时间影响航次油耗。程序将无帆与有帆总油耗之差作为节油量，并以无帆总油耗为基准计算航次节油率；各航段节油率用于结果曲线展示。航路包含 $N$ 个航路点时，对应 $N-1$ 个航段。
+
+程序还可基于上述主机航次油耗计算单航次 CII 估算值。该功能采用船舶载重吨（DWT）和航程，结合所选燃料的二氧化碳转换系数，分别计算使用风帆前后的航次碳强度。该结果为仅计主机油耗的航次估算，不是 IMO 年度 CII 评级，不包含辅机、锅炉、旋筒驱动耗电及年度评级所需的其他项目。
+
+程序通过输入检查、阻力数据校验、计算结果有效性检查及自动化测试，对模块调用顺序和数值处理进行软件层面的核对。此类检查用于发现输入格式错误、参数缺失、计算范围越界和程序回归问题，并不等同于模型的实船精度验证。计算结果的可靠性取决于船舶阻力、螺旋桨特性、风帆气动力、主机油耗率和环境数据是否与目标船舶及工况相匹配。本文将其定位为给定输入条件下的风帆助推效果估算工具。模型精度仍需通过独立的水池试验、实船功率与油耗记录或其他适用的基准数据进行验证。
+\FloatBarrier
+
+\section{实际航线气象环境提取与典型气象工况划分}
 \label{sec:meteo}
 
 风帆助推效果取决于船舶航行过程中遭遇的风、浪、流条件。针对再分析环境场与航迹点在
@@ -115,7 +159,7 @@ To address the need for energy conservation and emission reduction in the shippi
 基准工况设置；最后结合气象状态连续性与航迹几何特征（转向点）确定航段边界。
 本节算例为 2024 年 5 月 7 日“去程”航次。
 
-\subsubsection{数据来源与环境变量}
+\subsection{数据来源与环境变量}
 
 风、浪资料取自 ERA5 再分析产品，海流资料取自 CMEMS 全球海洋再分析产品 GLORYS12V1
 （表层日平均流场），所选变量及其在后续计算中的作用见表~\ref{tab:meteo_sources}。
@@ -148,7 +192,7 @@ CMEMS & \texttt{uo}、\texttt{vo} & 表层海流东西/南北分量 & 1/12\textd
 120\textdegree{}～128\textdegree{}E、36\textdegree{}～38\textdegree{}N 海域的环境资料；
 风、浪为逐小时序列，海流为日平均序列。
 
-\subsubsection{航迹与气象环境的时空匹配}
+\subsection{航迹与气象环境的时空匹配}
 
 再分析环境资料在时间分辨率与空间网格上均与航迹点不一致：风、浪、海流网格分辨率
 分别为 0.25\textdegree{}、0.50\textdegree{} 与 1/12\textdegree{}，而航迹点为任意时空位置的
@@ -162,7 +206,7 @@ CMEMS & \texttt{uo}、\texttt{vo} & 表层海流东西/南北分量 & 1/12\textd
 作为气象匹配与聚类的样本。经上述处理，2024 年 5 月 7 日去程算例共获得
 \textbf{813 个有效航迹点}，作为后续聚类与航段划分的样本。
 
-\subsubsection{气象特征构造与标准化}
+\subsection{气象特征构造与标准化}
 
 以航迹点对应的环境状态为聚类对象，由风、浪、流要素构造 10 维特征向量，
 包括风速、风向（正弦、余弦编码）、波向（正弦、余弦编码）、有效波高、波周期、
@@ -191,7 +235,7 @@ z_{ij}=\frac{x_{ij}-\mu_j}{\sigma_j}.
 基准算例采用等权特征设置；航段工况赋值采用与聚类阶段一致的标准化参数，
 以使两阶段处于统一的特征空间。
 
-\subsubsection{典型气象工况聚类}
+\subsection{典型气象工况聚类}
 
 聚类采用 KMeans 方法，在标准化特征空间中最小化簇内平方和
 
@@ -270,7 +314,7 @@ k & 簇内平方和 & 轮廓系数 & CH 指数 & DB 指数 \\
 但其有效波高和波周期均低于簇 0 和簇 1，表明该航次中风场强度与局地波浪状态
 并未呈现简单的一一对应关系。
 
-\subsubsection{气象工况驱动的航段划分}
+\subsection{气象工况驱动的航段划分}
 
 气象工况聚类描述环境状态，航段划分描述空间连续的航行区间，两者属于不同层次的处理过程。
 航段划分在工况识别结果的基础上进行：由航向变化检测航迹转向点，作为航段划分的几何边界；
@@ -312,7 +356,7 @@ k & 簇内平方和 & 轮廓系数 & CH 指数 & DB 指数 \\
 据此，每个航段可直接引用表~\ref{tab:meteo_conditions} 中对应工况的风速、风向、有效波高、波向、波周期、
 流速与流向，以及由其反算的风、流速度分量，作为后续风帆气动计算与船机桨帆匹配的输入。
 
-\subsubsection{小结}
+\subsection{小结}
 
 本节建立了面向实际航线的气象环境提取与工况划分方法。通过再分析风、浪、流场与
 AIS 航迹的时空匹配，构建包含风、浪、流特征的 10 维环境状态向量，并利用 KMeans
@@ -328,7 +372,8 @@ AIS 航迹的时空匹配，构建包含风、浪、流特征的 10 维环境状
 波浪增阻同时作用于无帆与有帆两种工况；海流按沿航向分量修正对地航速，
 进而改变航行时间与航程总油耗。因此，后续推进模型并非纯静水阻力模型。
 
-\subsection{风帆气动力计算模型与计算流程}
+\section{风帆气动力计算模型与计算流程}
+\label{sec:aero}
 \label{sec:sail_aero}
 
 风帆产生的助推力取决于船舶航行中遭遇的表观风条件与风帆自身的气动特性。本节在统一的
@@ -336,9 +381,9 @@ AIS 航迹的时空匹配，构建包含风、浪、流特征的 10 维环境状
 扩展，转筒帆采用基于非定常 RANS 数值结果拟合的代理模型；进而给出升阻力到船舶纵向
 助推力与侧向力的合成关系，并以纵向推力最大为目标确定各航路点的风帆工作点；最后给出
 本节气动计算与后续推进计算的衔接流程。本节侧重模型建立与实现方式，算例分析、
-参数影响与模型验证见第~3~章。
+参数影响与模型验证见第~\ref{sec:case}~节。
 
-\subsubsection{坐标、来流与受力定义}
+\subsection{坐标、来流与受力定义}
 
 定义风翼受力分析所用的角度体系如图~\ref{fig:sail_force} 所示\textsuperscript{\cite{yanyasheng2019}}。以船舶航向为参考方向，
 各角度定义如下：
@@ -354,7 +399,7 @@ AIS 航迹的时空匹配，构建包含风、浪、流特征的 10 维环境状
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=0.68\textwidth]{figures/fig_1_2_force.png}
+\includegraphics[width=0.42\textwidth]{figures/fig_1_2_force.png}
 \caption{风翼受力简图（$\beta$、$\alpha$、$\varphi$ 为本文所用角度体系）}
 {\small Fig.~\thefigure\quad Force diagram of a wing sail ($\beta$, $\alpha$ and $\varphi$ defined as in the text)\par}
 \label{fig:sail_force}
@@ -387,8 +432,8 @@ C_M=h\!\left(\alpha,\lambda,\varepsilon,l\right),
 表征，三维几何形状不进入气动力计算，仅用于程序中的模型显示。由此，风帆气动模型归结为
 两个问题：一是获得翼帆与转筒帆的升阻力系数随其控制变量（翼帆为攻角 $\alpha$，
 转筒帆为转筒比 $SR$）的变化关系，即气动极线；二是由极线确定各航路点的最优工作点。
-二者分别由~\S\ref{sec:wing_polar}~与~\S\ref{sec:rotor_model}~、
-\S\ref{sec:sail_operating_point}~给出。
+二者分别由~第~\ref{sec:wing_polar}~节~与~第~\ref{sec:rotor_model}~节~、
+第~\ref{sec:sail_operating_point}~节~给出。
 
 计算雷诺数按设计航速与弦长估算：
 \begin{equation}
@@ -399,7 +444,7 @@ Re=\frac{V_s c}{\nu_a},
 运动黏度。当航速或弦长缺失时取 $Re=1.0\times10^{6}$ 作为默认值。空气密度取
 $\rho=1.225\ \mathrm{kg\,m^{-3}}$，马赫数取 0（不计压缩性）。
 
-\subsubsection{翼帆气动模型}
+\subsection{翼帆气动模型}
 \label{sec:wing_polar}
 
 \paragraph{二维极线计算}
@@ -476,7 +521,7 @@ C_{L,D}=w\,C_{L,D}^{\mathrm{XFOIL}}\!\Big|_{\pm\alpha_{\lim}}
 意味着同一组二维极线数据被用于全部来流方向，这在物理上要求帆能相对来流连续改变其
 自身攻角，即要求转角可覆盖相应范围。
 
-\subsubsection{转筒帆气动模型}
+\subsection{转筒帆气动模型}
 \label{sec:rotor_model}
 
 转筒帆依靠马格努斯效应产生升力与推力，其气动特性由转筒比 $SR$、展弦比 $AR$ 与端板
@@ -519,7 +564,7 @@ $2.0\le AR\le8.0$、$1.0\le d_e/d\le3.0$，覆盖了船舶应用中转筒帆的�
 
 以程序界面默认的转筒几何 $d=3.0$~m、$H=15.0$~m、$d_e=4.5$~m（对应 $AR=5.0$、
 $d_e/d=1.5$，参数均落在有效范围内）为例，取设计航速 12~kn，相对风速按
-\S\ref{sec:wing_polar}~算例的 $3.83\sim16.17\ \mathrm{m\,s^{-1}}$ 范围变化，
+第~\ref{sec:wing_polar}~节~算例的 $3.83\sim16.17\ \mathrm{m\,s^{-1}}$ 范围变化，
 $SR$ 在 $1.0\sim3.0$ 内取步长 0.5，得转筒帆的升阻力特性如表~\ref{tab:rotor_polar} 与
 图~\ref{fig:rotor_polar} 所示。
 
@@ -553,7 +598,7 @@ $v=10\ \mathrm{m\,s^{-1}}$ 反算给出。可见转筒帆的升力系数随转�
 这与 1.2.4 节以助推力最大为目标的逐点寻优是一致的：寻优结果会自动落在效率与
 $C_L$ 的综合最优点上。
 
-\subsubsection{助推力合成与工作点选取}
+\subsection{助推力合成与工作点选取}
 \label{sec:sail_operating_point}
 
 \paragraph{升阻力到助推力与侧推力}
@@ -621,18 +666,18 @@ F_{T,i}=\max\!\left(0,\ \max_j\left[\cdot\right]\right).
 相互独立；当所有候选工作点均产生负推力时取 $F_{T,i}=0$，对应收帆或停转状态。
 由于寻优为穷举，最优解的精度直接由数据表步长决定。
 
-\subsubsection{小结}
+\subsection{小结}
 
 本节建立了翼帆与转筒帆的统一气动计算模型与计算流程。在统一的坐标与角度体系下，
 翼帆气动特性由 XFOIL 计算的二维极线表征，并经三段拼接扩展至全攻角范围；转筒帆气动
 特性由基于非定常 RANS 数值结果拟合的多项式代理模型给出；两者以统一的升阻力合成关系
 折算至船舶航向与垂直航向，并逐航路点以助推力最大为目标确定工作点。本节输出的
 逐航路点助推力构成后续船机桨帆匹配及航程节油计算的输入。
-\subsection{船舶阻力与螺旋桨工作点计算}
+\section{船舶阻力与螺旋桨工作点计算}
 \label{sec:ship_propeller}
 翼帆提供的纵向推力能够降低船舶对螺旋桨推力的需求，同时改变螺旋桨工作点及推进效率。因此，本文结合船舶静水阻力、船体与螺旋桨相互作用参数及螺旋桨敞水特性，分别计算无帆和翼帆助推工况下的推进功率，为后续燃油消耗评估提供依据。本文以单桨船定航速准稳态航行为对象，计算过程中保持船舶航速及螺旋桨几何参数不变，并假定伴流分数、推力减额系数和相对旋转效率不随翼帆助推载荷变化。
 
-\subsubsection{船舶静水阻力计算}
+\subsection{船舶静水阻力计算}
 
 船舶静水阻力可通过导入阻力数据并按航速插值得到，也可采用程序集成的 Holtrop--Mennen 经验方法计算。经验方法将总阻力表示为
 \begin{equation}
@@ -651,7 +696,7 @@ C_F&=\frac{0.075}{(\log_{10}Re-2)^2},\qquad Re=\frac{V_sL_{pp}}{\nu}.
 
 程序依据船舶主尺度、方形系数、中横剖面系数及浮心纵向位置等参数，在给定航速范围内建立阻力曲线。当前经验公式计算采用正浮及常规艉型假设，并将球鼻首面积、浸没艉板面积和附体面积设为零，因此相应阻力项不计入计算。Holtrop-Mennen 方法适用于长度在 50 至 500 米之间的船只。不建议将其应用于小型船只（排水量小于 30 米）。在小型船只上，雷诺数依赖性和回归系数并不稳定。对于上述的船舶，应补充相应参数或采用能够反映实际船型的阻力数据。
 
-\subsubsection{船体与螺旋桨相互作用}
+\subsection{船体与螺旋桨相互作用}
 
 采用伴流分数 $w$、推力减额系数 $t$ 和相对旋转效率 $\eta_R$ 描述船体与螺旋桨的相互作用。在经验公式模式下，单桨船伴流分数采用基于 Harvald 数据的经验拟合关系\textsuperscript{\cite{harvald1983,molland2011}}，推力减额系数采用与伴流分数相关的近似关系\textsuperscript{\cite{molland2011}}：
 \begin{equation}
@@ -671,7 +716,7 @@ T_{P,i}=\frac{R_T(V_s)-F_{T,i}}{1-t},\qquad V_a=(1-w)V_s.
 \end{equation}
 无帆工况取 $F_{T,i}=0$。其中，$R_T-F_{T,i}$ 表示需要由螺旋桨承担的剩余纵向力需求。本文暂不计入翼帆侧向力引起的漂角、横倾及操舵附加阻力。
 
-\subsubsection{螺旋桨敞水特性与工作点求解}
+\subsection{螺旋桨敞水特性与工作点求解}
 \label{sec:propeller-open-water}
 
 为适应不同的输入条件，本文提供敞水特性数据导入、已知几何参数的性能计算以及基于图谱回归的设计点匹配三种方式，获得螺旋桨敞水特性。各方式统一采用进速系数 $J$、推力系数 $K_T$、转矩系数 $K_Q$ 和敞水效率 $\eta_0$ 描述螺旋桨性能，其定义为
@@ -697,7 +742,7 @@ K_Q&=\frac{Q}{\rho_w n^2D^5},& \eta_0&=\frac{JK_T}{2\pi K_Q}.
 \end{equation}
 三种方式获得的敞水特性曲线描述了螺旋桨在不同工况下的性能。为计算翼帆助推后的推进功率，需根据各航路点的推力需求确定相应的螺旋桨工作点。本文在航速及螺旋桨几何参数保持不变的条件下，由式\eqref{eq:operating_point}计算推力匹配参数，并通过敞水曲线插值得到对应的进速系数和敞水效率。分别对无帆与有帆工况进行上述计算，以考虑翼帆助推引起的螺旋桨负荷及效率变化。
 
-\subsubsection{助推工况下的推进功率}
+\subsection{助推工况下的推进功率}
 
 根据船体效率和螺旋桨敞水效率，推进效率表示为
 \begin{equation}
@@ -711,12 +756,12 @@ P_{D,i}=\frac{\left[R_T(V_s)-F_{T,i}\right]V_s}{\eta_{D,i}}.
 \end{equation}
 无帆工况采用相同方法，以 $F_{T,i}=0$ 重新求解工作点及推进功率。上述方法同时考虑了翼帆推力对推进负荷的直接削减，以及工作点变化引起的敞水效率变化，可为后续结合主机负荷与燃油消耗率的节油计算提供功率输入。计算适用于剩余推力需求为正、工作点处于有效敞水数据范围内的工况，且未显式计入轴系传动损失。
 
-\subsection{主机燃油消耗、航程节油率与航次碳强度计算}
+\section{主机燃油消耗、航程节油率与航次碳强度计算}
 \label{sec:fuel-cii}
 
 在前文介绍的计算方法基础上，本节以无帆和有帆两种工况下的推进功率为输入，结合主机负荷相关燃油消耗率，计算航段油耗及航程总油耗，并进一步估算航次主机碳强度。两种工况采用相同的航线、船舶参数及对水航速，以比较翼帆助推带来的变化。
 
-\subsubsection{航段时间与主机负荷}
+\subsection{航段时间与主机负荷}
 
 以相邻计算航路点之间的区间作为油耗累加单元，记第 $i$ 个区间的长度为 $d_i$、航行时间为 $\Delta t_i$。该区间与第~\ref{sec:meteo}~节用于典型气象工况归类的较长航段属于不同层次：前者用于数值累加，后者用于环境状态表征。当前程序根据相邻计算点的经纬度，采用 WGS84 椭球大地线反解获得距离。在本节与第~\ref{sec:ship_propeller}~节一致的定航速、无海流修正条件下，时间为
 
@@ -725,7 +770,7 @@ P_{D,i}=\frac{\left[R_T(V_s)-F_{T,i}\right]V_s}{\eta_{D,i}}.
 \label{eq:fuel-cii-1}
 \end{equation}
 
-式中，$d_i$ 的单位为 m，$V_s$ 为对水航速，单位为 m/s，$\Delta t_i$ 的单位为 h。若输入航速以节表示，应先乘以 $1852/3600$ 换算为 m/s。此处采用给定航速计算时间，不直接将第~\ref{sec:meteo}~节由航迹时间间隔得到的平均对地航速作为对水航速。（待确认）
+式中，$d_i$ 的单位为 m，$V_s$ 为对水航速，单位为 m/s，$\Delta t_i$ 的单位为 h。若输入航速以节表示，应先乘以 $1852/3600$ 换算为 m/s。此处采用给定航速计算时间。
 
 无帆和有帆工况在各计算点的螺旋桨收到功率 $P_{D,i}$ 由第~\ref{sec:ship_propeller}~节求得，本节不再重复阻力、推力匹配和推进效率的推导。按区间两端功率的算术平均值确定区间平均功率：
 
@@ -743,7 +788,7 @@ P_{D,i}=\frac{\left[R_T(V_s)-F_{T,i}\right]V_s}{\eta_{D,i}}.
 
 额定功率采用 kW，使负荷率为无量纲量。两种工况分别根据各自的推进功率计算负荷率。
 
-\subsubsection{负荷相关燃油消耗率与航程油耗}
+\subsection{负荷相关燃油消耗率与航程油耗}
 
 主机燃油消耗率随负荷变化。依据输入的主机负荷—燃油消耗率数据，采用分段线性插值获得第 $i$ 个区间的比油耗 $b_i=b(\lambda_i)$。输入表中的负荷百分数除以 100 转换为负荷率，比油耗由 g/(kW·h) 除以 1000 转换为 kg/(kW·h)。当相邻表格节点为 $(\lambda_j,b_j)$ 和 $(\lambda_{j+1},b_{j+1})$ 时，插值关系为
 
@@ -779,9 +824,9 @@ M_s=\sum_{i=1}^{N-1}m_{s,i}.
 
 计算要求航速位于有效阻力数据范围内、螺旋桨工作点位于有效敞水数据范围内，且主机负荷位于输入比油耗曲线的范围内。超出数据范围时不据此报告有效油耗结果，避免将插值范围外的工况作为已验证计算。
 
-\subsubsection{航次主机碳强度估算}
+\subsection{航次主机碳强度估算}
 
-为比较同一航线使用翼帆前后的碳排放强度，参照 IMO CII 指南中以载重吨和航行距离构成运输工作量的计算结构，定义航次主机碳强度估算值 $\mathrm{CII}_{\mathrm{voy,ME}}$\cite{imo2022cii}。
+为比较同一航线使用翼帆前后的碳排放强度，参照 IMO CII 指南中以载重吨和航行距离构成运输工作量的计算结构，定义航次主机碳强度估算值 $\mathrm{CII}_{\mathrm{voy,ME}}$\textsuperscript{\cite{imo2022cii}}。
 
 单一燃油条件下，航次主机 CO$_2$ 排放量为
 
@@ -790,7 +835,7 @@ E_{\mathrm{CO_2}}=1000C_FM.
 \label{eq:fuel-cii-8}
 \end{equation}
 
-式中，$M$ 为主机燃油消耗量，单位为 kg；$C_F$ 为燃油质量到 CO$_2$ 质量的转换系数，单位为 kg CO$_2$/kg fuel；$E_{\mathrm{CO_2}}$ 的单位为 g。当前程序提供重燃油与柴油/轻柴油两类选择，其转换系数分别为 3.114 和 3.206。\cite{imo2022eedi} 此处仅计算燃料燃烧产生的 CO$_2$，不包含燃料生产、运输等上游过程的生命周期排放。
+式中，$M$ 为主机燃油消耗量，单位为 kg；$C_F$ 为燃油质量到 CO$_2$ 质量的转换系数，单位为 kg CO$_2$/kg fuel；$E_{\mathrm{CO_2}}$ 的单位为 g。当前程序提供重燃油与柴油/轻柴油两类选择，其转换系数分别为 3.114 和 3.206\textsuperscript{\cite{imo2022eedi}}。此处仅计算燃料燃烧产生的 CO$_2$，不包含燃料生产、运输等上游过程的生命周期排放。
 
 航程距离由各计算区间距离累加得到，并换算为海里：
 
@@ -826,101 +871,8 @@ L_{\mathrm{voy}}=\frac{\sum_{i=1}^{N-1}d_i}{1852}.
 
 本节结果仅覆盖主机燃油及其 CO$_2$ 排放，其用途是比较所选航次的翼帆助推效果。
 
-\section{计算流程与模型验证}
-\subsection{计算流程及程序实现}
-本程序总计算流程如图~\ref{fig:calculation-flow} 所示。
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.85\linewidth]{figures/calculation-flow.png}
-\caption{风帆助推船舶航次能耗计算流程}
-\label{fig:calculation-flow}
-\end{figure}
-
-
-本文建立的计算程序用于估算船舶在给定航线和航速下，安装风帆助推装置前后的推进功率与主机燃油消耗，并据此比较航次层面的节油效果。程序由船舶参数、风帆助推、航线气象和结果分析等模块组成。计算以航线相邻航路点构成的航段为基本单元，依次完成环境数据处理、助推力计算、船舶推进功率计算和燃油消耗积分。
-
-计算开始前，程序读取用户设置的船舶航速、船舶主参数、航线以及船舶阻力、螺旋桨和主机油耗率数据。船舶阻力数据可由 Excel 导入，也可由程序内的阻力计算模块生成。两种方式统一整理为航速、阻力、伴流分数、推力减额分数和相对旋转效率五列。程序检查阻力数据的列数、数值有效性及航速递增关系，并要求计算航速处于阻力数据覆盖范围内。螺旋桨静水特性有3种导入方式：对于已有敞水性能数据的螺旋桨，采用Excel数据导入方式；对于几何参数已知但缺少敞水性能数据的螺旋桨，采用已知几何参数的性能计算方式；对于需要根据船舶设计工况确定螺旋桨参数的情况，采用基于图谱回归的设计点匹配方式。这三种方式的具体计算细节在\ref{sec:propeller-open-water}中有详细阐释。主机油耗率用Excel导入即可。各数据导入界面见图~\ref{fig:ui-ship-inputs}。
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/ui-ship.png}
-\caption{船舶参数模块界面}
-\label{fig:ui-ship}
-\end{figure}
-
-
-\begin{figure}[htbp]
-\centering
-\begin{minipage}{0.48\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-particulars.png}
-\par\small （a）船舶主尺度
-\end{minipage}\hfill
-\begin{minipage}{0.48\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-resistance.png}
-\par\small （b）阻力
-\end{minipage}
-\par\medskip
-\begin{minipage}{0.48\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-propeller.png}
-\par\small （c）螺旋桨静水特性
-\end{minipage}\hfill
-\begin{minipage}{0.48\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-sfoc.png}
-\par\small （d）主机油耗
-\end{minipage}
-\caption{船舶参数与推进性能数据输入界面}
-\label{fig:ui-ship-inputs}
-\end{figure}
-
-
-风帆助推力根据航路点表观风条件逐点求得。本模块页面见图~\ref{fig:ui-sails}。翼帆模式读取升力系数和阻力系数随攻角、雷诺数变化的数据，在候选数据中选取使航向分力最大的工况；转筒模式读取升力系数、阻力系数及转筒比数据，在候选转筒比中选取航向助推力最大的工况。两种模式均根据相对风动压、设备参考面积和气动力系数计算升力与阻力，再分解为沿航向推力和横向力。当前程序采用固定的设备数量和翼帆面积设置；转筒直径与高度可由用户输入。该步骤输出各航路点的助推力，并将其用于后续有帆工况的船舶阻力修正。
-
-\begin{figure}[htbp]
-\centering
-\begin{minipage}{0.95\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-wing.png}
-\par\small （a）翼帆页面
-\end{minipage}
-\par\medskip
-\begin{minipage}{0.95\linewidth}
-\centering
-\includegraphics[width=\linewidth]{figures/ui-rotor.png}
-\par\small （b）转筒帆页面
-\end{minipage}
-\caption{翼帆与转筒帆参数及气动性能界面}
-\label{fig:ui-sails}
-\end{figure}
-
-
-航线模块读取各航路点的经纬度，并利用相邻航路点计算航段距离和航向。本模块页面见图~\ref{fig:ui-navigation}。风场数据可载入预先利用下载脚本生成的逐航路点 ERA5 航线气象文件。程序将风场矢量与船舶航速矢量合成，得到各航路点的表观风速和风向。载入波浪数据时，程序根据有效波高和船宽估算波浪增阻，并可根据航向与波向应用方向修正；载入海流数据时，海流沿航向的分量用于调整对地航速和航段航行时间。推进功率计算仍采用船舶对水航速。
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=0.95\linewidth]{figures/ui-navigation.png}
-\caption{航线气象模块界面}
-\label{fig:ui-navigation}
-\end{figure}
-
-
-对于无帆工况，程序以静水阻力为基础；对于有帆工况，程序从船舶阻力中扣除风帆沿航向的助推力。若启用波浪增阻，波浪增阻同时加入两种工况。随后，程序结合伴流分数、推力减额分数、相对旋转效率、螺旋桨直径及螺旋桨静水特性，求解螺旋桨工作点和推进功率。螺旋桨特性数据按线性插值处理。每个航段的推进功率取其两端航路点功率的平均值。
-
-主机燃油消耗由航段推进功率、对应负荷下的主机比油耗和航段航行时间共同确定。程序使用输入的主机标定功率计算负荷率，再从主机油耗率曲线插值得到相应比油耗。航段油耗按“比油耗 × 航段平均功率 × 航段时间”计算并沿航线累加，分别得到无帆和有帆工况的总油耗。海流数据可通过改变航段航行时间影响航次油耗。程序将无帆与有帆总油耗之差作为节油量，并以无帆总油耗为基准计算航次节油率；各航段节油率用于结果曲线展示。航路包含 $N$ 个航路点时，对应 $N-1$ 个航段。
-
-程序还可基于上述主机航次油耗计算单航次 CII 估算值。该功能采用船舶载重吨（DWT）和航程，结合所选燃料的二氧化碳转换系数，分别计算使用风帆前后的航次碳强度。该结果为仅计主机油耗的航次估算，不是 IMO 年度 CII 评级，不包含辅机、锅炉、旋筒驱动耗电及年度评级所需的其他项目。
-
-程序通过输入检查、阻力数据校验、计算结果有效性检查及自动化测试，对模块调用顺序和数值处理进行软件层面的核对。此类检查用于发现输入格式错误、参数缺失、计算范围越界和程序回归问题，并不等同于模型的实船精度验证。计算结果的可靠性取决于船舶阻力、螺旋桨特性、风帆气动力、主机油耗率和环境数据是否与目标船舶及工况相匹配。本文将其定位为给定输入条件下的风帆助推效果估算工具。模型精度仍需通过独立的水池试验、实船功率与油耗记录或其他适用的基准数据进行验证。
-\FloatBarrier
-
-\subsection{模型验证与基准工况对比}
-\todo{使用试验数据、公开算例或可靠计算结果开展对比，说明误差和适用范围。}
-
 \section{典型航线算例与结果分析}
+\label{sec:case}
 \subsection{算例船舶、翼帆配置与航线条件}
 \todo{列出船舶主尺度、航速、翼帆配置、螺旋桨参数、航线和月份。}
 \subsection{沿航线翼帆推力与推进功率变化}
@@ -931,10 +883,8 @@ L_{\mathrm{voy}}=\frac{\sum_{i=1}^{N-1}d_i}{1852}.
 \todo{选择航速、月份或翼帆面积中的一至两个变量开展对比，讨论月平均风场、侧向力及其他简化假设的影响。}
 
 \section{结论}
+\label{sec:conclusion}
 \todo{归纳两至三条由验证和算例支持的结论，说明适用范围及后续改进方向。}
-
-\section*{致谢}
-\todo{填写需要致谢的机构或个人；无致谢内容时删除本节。}
 
 % 保留可供正文引用的唯一键；专著采用 [M] 文献类型标识。
 \begingroup
@@ -944,6 +894,34 @@ L_{\mathrm{voy}}=\frac{\sum_{i=1}^{N-1}d_i}{1852}.
 \setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
 \bibitem{lr2021flettner}
 Flettner rotor savings calculator: an interactive tool to determine the potential impact on the net propulsion fuel consumption when operating a Flettner Rotor System[EB/OL]. Lloyd's Register, 2021[2026-10-02]. \url{https://flettner.lr.org/}.
+\bibitem{lu2020}
+LU R, RINGSBERG J W. Ship energy performance study of three wind-assisted ship propulsion technologies including a parametric study of the Flettner rotor technology[J]. Ships and Offshore Structures, 2020, 15(3): 249--258. DOI:10.1080/17445302.2019.1612544.
+\bibitem{tillig2020}
+TILLIG F, RINGSBERG J W. Design, operation and analysis of wind-assisted cargo ships[J]. Ocean Engineering, 2020, 211: 107603. DOI:10.1016/j.oceaneng.2020.107603.
+\bibitem{vigna2023}
+VIGNA V, FIGARI M. Wind-assisted ship propulsion: matching flettner rotors with diesel engines and controllable pitch propellers[J]. Journal of Marine Science and Engineering, 2023, 11(5): 1072. DOI:10.3390/jmse11051072.
+\bibitem{traut2014}
+TRAUT M, GILBERT P, WALSH C, et al. Propulsive power contribution of a kite and a Flettner rotor on selected shipping routes[J]. Applied Energy, 2014, 113: 362--372. DOI:10.1016/j.apenergy.2013.07.026.
+\bibitem{viola2015}
+VIOLA I M, SACHER M, XU J, et al. A numerical method for the design of ships with wind-assisted propulsion[J]. Ocean Engineering, 2015, 105: 33--42. DOI:10.1016/j.oceaneng.2015.06.009.
+\bibitem{li2020}
+LI C, WANG H, SUN P. Numerical investigation of a two-element wingsail for ship auxiliary propulsion[J]. Journal of Marine Science and Engineering, 2020, 8(5): 333. DOI:10.3390/jmse8050333.
+\bibitem{zhu2023}
+ZHU H, YAO H, THIES F, et al. Propulsive performance of a rigid wingsail with crescent-shaped profiles[J]. Ocean Engineering, 2023, 285: 115349. DOI:10.1016/j.oceaneng.2023.115349.
+\bibitem{bentin2016}
+BENTIN M, ZASTRAU D, SCHLAAK M, et al. A new routing optimization tool: influence of wind and waves on fuel consumption of ships with and without wind assisted ship propulsion systems[J]. Transportation Research Procedia, 2016, 14: 153--162. DOI:10.1016/j.trpro.2016.05.051.
+\bibitem{seddiek2021}
+SEDDIEK I S, AMMAR N R. Harnessing wind energy on merchant ships: case study flettner rotors onboard bulk carriers[J]. Environmental Science and Pollution Research, 2021, 28(25): 32695--32707. DOI:10.1007/s11356-021-12791-3.
+\bibitem{charlou2023}
+CHARLOU M, BABARIT A, GENTAZ L. A new validated open-source numerical tool for the evaluation of the performance of wind-assisted ship propulsion systems[J]. Mechanics \& Industry, 2023, 24: 26. DOI:10.1051/meca/2023026.
+\bibitem{wang2022}
+WANG Y, ZHANG X, LIN S, et al. Analysis on the development of wind-assisted ship propulsion technology and contribution to emission reduction[J]. IOP Conference Series: Earth and Environmental Science, 2022, 966(1): 012012. DOI:10.1088/1755-1315/966/1/012012.
+\bibitem{liqiao2019}
+LI Y, QIAO C. A route optimization method based on simulated annealing algorithm for wind-assisted ships[J]. IOP Conference Series: Earth and Environmental Science, 2019, 295(4): 042074. DOI:10.1088/1755-1315/295/4/042074.
+\bibitem{sun2022}
+SUN W, TANG S, LIU X, et al. An improved ship weather routing framework for CII reduction accounting for wind-assisted rotors[J]. Journal of Marine Science and Engineering, 2022, 10(12): 1979. DOI:10.3390/jmse10121979.
+\bibitem{ma2023}
+MA R, WANG Z, WANG K, et al. Evaluation method for energy saving of sail-assisted ship based on wind resource analysis of typical route[J]. Journal of Marine Science and Engineering, 2023, 11(4): 789. DOI:10.3390/jmse11040789.
 \bibitem{holtrop1982}
 HOLTROP J, MENNEN G G J. An approximate power prediction method[J]. International Shipbuilding Progress, 1982, 29(335): 166--170.
 \bibitem{holtrop1984}
@@ -952,12 +930,12 @@ HOLTROP J. A statistical re-analysis of resistance and propulsion data[J]. Inter
 HARVALD S A. Resistance and propulsion of ships[M]. New York: Wiley-Interscience, 1983.
 \bibitem{molland2011}
 MOLLAND A F, TURNOCK S R, HUDSON D A. Ship resistance and propulsion: practical estimation of propulsive power[M]. Cambridge: Cambridge University Press, 2011.
+\bibitem{yanyasheng2019}
+闫亚胜. 风能在现代船舶风翼助航中应用研究[J]. 海洋工程装备与技术, 2019, 6(S01): 389-394.
 \bibitem{drela1989}
 DRELA M. XFOIL: an analysis and design system for low Reynolds number airfoils[C]//MUELLER T J. Low Reynolds Number Aerodynamics. Berlin, Heidelberg: Springer, 1989. (Lecture Notes in Engineering, Vol. 54).
 \bibitem{demarco2016}
 DE MARCO A, MANCINI S, PENSA C, et al. Flettner rotor concept for marine applications: a systematic study[J]. International Journal of Rotating Machinery, 2016, 2016: 3458750.
-\bibitem{yanyasheng2019}
-闫亚胜. 风能在现代船舶风翼助航中应用研究[J]. 海洋工程装备与技术, 2019, 6(S01): 389-394.
 \bibitem{imo2022cii}
 INTERNATIONAL MARITIME ORGANIZATION. 2022 Guidelines on operational carbon intensity indicators and the calculation methods (CII Guidelines, G1): Resolution MEPC.352(78)[EB/OL]. 2022[2026-10-08]. \url{https://wwwcdn.imo.org/localresources/en/KnowledgeCentre/IndexofIMOResolutions/MEPCDocuments/MEPC.352(78).pdf}.
 \bibitem{imo2022eedi}
