@@ -189,7 +189,7 @@ CMEMS & \texttt{uo}、\texttt{vo} & 表层海流东西/南北分量 & 1/12\textd
 方向角采用以正北为 0\textdegree{}、顺时针为正的定义，风向与流向由其东西向、南北向速度分量
 按 $\theta=\operatorname{atan2}(u,v)$ 反算得到，表示相应速度矢量的指向，
 与气象学中表示风来向的定义相差 180\textdegree{}。算例选取 2024 年 5 月、
-120\textdegree{}～128\textdegree{}E、36\textdegree{}～38\textdegree{}N 海域的环境资料；
+120\textdegree{}～128\textdegree{}E、\allowbreak 36\textdegree{}～38\textdegree{}N 海域的环境资料；
 风、浪为逐小时序列，海流为日平均序列。
 
 \subsection{航迹与气象环境的时空匹配}
@@ -873,14 +873,206 @@ L_{\mathrm{voy}}=\frac{\sum_{i=1}^{N-1}d_i}{1852}.
 
 \section{典型航线算例与结果分析}
 \label{sec:case}
+
 \subsection{算例船舶、翼帆配置与航线条件}
-\todo{列出船舶主尺度、航速、翼帆配置、螺旋桨参数、航线和月份。}
+
+为说明船舶推进功率、主机燃油消耗及航次碳强度之间的计算关系，选取一艘载重吨为25,000 t的船舶开展算例分析。本算例使用已有实船基本参数、推进与主机参数、航线与气象数据、翼帆气动数据进行计算。
+
+已有输入资料包括：一是来自同一艘实船的基本参数，包括载重吨、船长、船宽、型深、吃水、方形系数、湿表面积及半进水角；二是推进与主机性能资料，包括主机额定功率、螺旋桨直径及轴数，以及不同航速下的阻力、伴流分数、推力减额系数、相对旋转效率、螺旋桨敞水性能曲线和主机负荷—比油耗曲线；三是航线与环境资料，包括7个分割点的经纬度、6个航段的距离、平均对地航速及代表风场，航程合计475.298 km；四是翼帆气动资料，即NACA0015翼型在不同攻角下的升力和阻力系数。这些数据分别为航行时间、翼帆推力、推进功率及主机油耗计算提供输入。
+
+与上述已有资料相区分，本算例将对水航速设为12 kn，翼帆配置设为单帆540 m$^2$、共3片，燃油类型设为重油。这三项属于算例运行条件和配置设定。后文的无帆、有帆油耗及CII均由这些输入和设定计算得到。船舶参数及翼帆配置见表~\ref{tab:case_ship}。
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.4}
+\caption{算例船舶与翼帆配置参数}
+{\small Table~\thetable\quad Ship particulars and wing-sail configuration\par}
+\smallskip
+\label{tab:case_ship}
+\begin{tabular}{@{}p{8.0cm}r@{}}
+\toprule
+参数 & 数值 \\
+\midrule
+载重吨 / t & 25,000 \\
+总长 / m & 220 \\
+垂线间长 / m & 209 \\
+水线长 / m & 210 \\
+船宽 / m & 30 \\
+型深 / m & 16 \\
+压载吃水 / m & 6.5 \\
+结构吃水 / m & 12 \\
+方形系数 & 0.76 \\
+湿表面积 / m$^2$ & 12,065 \\
+半进水角 / \textdegree{} & 42 \\
+主机额定功率 / kW & 5,620 \\
+螺旋桨直径 / m & 6.5 \\
+推进轴数 & 1 \\
+算例对水航速 / kn & 12 \\
+单片翼帆面积 / m$^2$ & 540 \\
+翼帆数量 & 3 \\
+翼帆总面积 / m$^2$ & 1,620 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+翼帆面积、数量及12 kn对水航速为本算例的运行设定。
+
+\begingroup\emergencystretch=2em
+航线环境采用第~\ref{sec:meteo}~节所述2024年5月7日去程航次的六个航段及其代表风场。航线起点为121.458230\textdegree{}E、\allowbreak 37.601403\textdegree{}N，\allowbreak 终点为126.509397\textdegree{}E、\allowbreak 37.346767\textdegree{}N，\allowbreak 六段距离合计475.298368 km，即256.640587 nm。航迹特征、气象匹配和典型工况划分详见第~\ref{sec:meteo}~节。
+\par\endgroup
+
+在两种工况下保持船舶参数、对水航速、航段环境及计算时间相同，无帆工况的翼帆推力取零，有帆工况采用三片翼帆的纵向助推力。各段航行时间由已有航段距离与平均对地航速确定，六段依次为3.316667、1.616667、4.983333、1.566667、0.516667和1.533333 h，合计13.533333 h。燃油采用重油，CO$_2$质量转换系数为3.114 kg CO$_2$/kg fuel，航次碳强度的运输能力采用25,000 t载重吨。
+
 \subsection{沿航线翼帆推力与推进功率变化}
-\todo{展示助推力和有帆、无帆功率曲线，解释不同相对风条件下的变化。}
+
+计算首先根据航向、代表风分量及设定船速构造相对风，再结合翼帆升阻力特性求取纵向助推力，并按第~\ref{sec:aero}~节的方法选择最大纵向推力对应的攻角。每个航段采用同一代表环境和定航速，故在段内按准稳态处理。
+
+在12 kn处，静水阻力为303.700 kN，伴流分数为0.629，推力减额系数为0.393，相对旋转效率为1.014。无帆工况以全部静水阻力确定螺旋桨推力需求；有帆工况先扣除翼帆纵向助推力，再按第~\ref{sec:ship_propeller}~节的船桨匹配方法重新确定螺旋桨工作点和推进效率。
+
+无帆工况各段收到功率相同，为2568.070 kW；有帆工况的推力与功率见表~\ref{tab:case_power}。
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.4}
+\caption{各航段翼帆助推力与推进功率}
+{\small Table~\thetable\quad Wing-sail thrust and propulsion power by segment\par}
+\smallskip
+\label{tab:case_power}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+航段 & 纵向助推力 / kN & 无帆功率 / kW & 有帆功率 / kW \\
+\midrule
+1 & 1.498 & 2568.070 & 2550.173 \\
+2 & 2.428 & 2568.070 & 2539.112 \\
+3 & 26.583 & 2568.070 & 2261.080 \\
+4 & 47.567 & 2568.070 & 2033.556 \\
+5 & 26.970 & 2568.070 & 2256.769 \\
+6 & 13.618 & 2568.070 & 2408.064 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+航段1、2的助推力较小，功率变化也较小；航段4具有最大的纵向助推力，有帆功率降至2033.556 kW。
+
 \subsection{航程燃油消耗与节油效果}
-\todo{填写总油耗、节油量及节油率，解释主要节油航段。}
+
+将各段推进功率除以主机额定功率，得到无帆和有帆的主机负荷率，再按第~\ref{sec:fuel-cii}~节的方法对主机比油耗曲线进行线性插值。该曲线在0\%、20\%、40\%、60\%、80\%、100\%和120\%负荷处的比油耗依次为217.6、196.6、181.7、173.0、170.5、174.3和184.1 g/(kW·h)。两种工况分别使用各自的负荷率确定比油耗，不将无帆比油耗直接用于全部有帆工况。
+
+无帆功率2568.070 kW对应的主机负荷约为45.695\%，在40\%与60\%负荷之间插值得到比油耗约179.223 g/(kW·h)。以第一段为例，功率、比油耗和时间相乘得到
+
+\begin{equation}
+m_{0,1}\approx2568.070\times0.179223\times3.316667
+\approx1526.516\ \mathrm{kg}.
+\label{eq:case_numeric_1}
+\end{equation}
+
+式中，比油耗已由g/(kW·h)转换为kg/(kW·h)。有帆油耗采用相同的计算过程，但使用该段有帆功率及对应比油耗。将六段油耗累加，得到表~\ref{tab:case_fuel}所示结果。以下数值均由未舍入的计算结果汇总，表内按展示精度保留小数。
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.4}
+\caption{航段主机燃油消耗与节油量}
+{\small Table~\thetable\quad Main-engine fuel consumption and fuel savings by segment\par}
+\smallskip
+\label{tab:case_fuel}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+航段 & 无帆油耗 / kg & 有帆油耗 / kg & 节油量 / kg \\
+\midrule
+1 & 1526.516 & 1517.049 & 9.467 \\
+2 & 744.081 & 736.611 & 7.470 \\
+3 & 2293.610 & 2046.203 & 247.406 \\
+4 & 721.068 & 587.936 & 133.132 \\
+5 & 237.799 & 211.783 & 26.016 \\
+6 & 705.726 & 666.328 & 39.398 \\
+合计 & 6228.799 & 5765.910 & 462.890 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+全航程无帆主机油耗为6.228799 t，有帆为5.765910 t，节油量为0.462890 t，节油率为7.43\%。
+
+在此基础上进行航次主机碳强度换算。将总油耗乘以重油CO$_2$转换系数，并由kg转换为g，得到无帆和有帆排放量分别为
+
+\begin{equation}
+E_0=6228.799381\times3.114\times1000
+\approx1.939648127\times10^7\ \mathrm{g\ CO_2},
+\label{eq:case_numeric_2}
+\end{equation}
+
+\begin{equation}
+E_s=5765.909545\times3.114\times1000
+\approx1.795504232\times10^7\ \mathrm{g\ CO_2}.
+\label{eq:case_numeric_3}
+\end{equation}
+
+将六段距离累加并换算为海里，再乘以载重吨，得到基于载重能力的运输工作量：
+
+\begin{equation}
+L=\frac{475298.367510}{1852}\approx256.640587208\ \mathrm{nm},
+\label{eq:case_numeric_4}
+\end{equation}
+
+\begin{equation}
+W=25000\times256.640587208
+\approx6416014.680209\ \mathrm{t\cdot nm}.
+\label{eq:case_numeric_5}
+\end{equation}
+
+这里采用载重吨表示船舶运输能力，不采用本航次实际载货量。由CO$_2$排放量除以同一运输工作量，得到两种工况的航次主机碳强度：
+
+\begin{equation}
+\mathrm{CII}_{0,\mathrm{voy,ME}}
+=\frac{1.939648127\times10^7}{6416014.680209}
+\approx3.023\ \mathrm{g\ CO_2/(t\cdot nm)},
+\label{eq:case_numeric_6}
+\end{equation}
+
+\begin{equation}
+\mathrm{CII}_{s,\mathrm{voy,ME}}
+=\frac{1.795504232\times10^7}{6416014.680209}
+\approx2.798\ \mathrm{g\ CO_2/(t\cdot nm)}.
+\label{eq:case_numeric_7}
+\end{equation}
+
+\begin{table}[htbp]
+\centering
+\small
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.4}
+\caption{航程主机油耗、CO$_2$排放与碳强度}
+{\small Table~\thetable\quad Voyage main-engine fuel consumption, CO$_2$ emissions and carbon intensity\par}
+\smallskip
+\label{tab:case_cii}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+项目 & 无帆工况 & 有帆工况 \\
+\midrule
+主机燃油消耗 / t & 6.229 & 5.766 \\
+主机CO$_2$排放 / t & 19.396 & 17.955 \\
+航次主机CII / [g CO$_2$/(t·nm)] & 3.023 & 2.798 \\
+\bottomrule
+\end{tabular}
+\end{table}
+\FloatBarrier
+
+采用翼帆后，航次主机碳强度降低约0.225 g CO$_2$/(t·nm)，相对降低7.43\%。由于两种工况燃油种类、载重吨及航程相同，该降低率与主机节油率一致，其关系详见第~\ref{sec:fuel-cii}~节。
+
 \subsection{关键参数影响与模型局限}
-\todo{选择航速、月份或翼帆面积中的一至两个变量开展对比，讨论月平均风场、侧向力及其他简化假设的影响。}
+
+本算例说明，在给定船舶性能、航线环境及翼帆配置下，可形成“环境与翼帆性能—纵向助推力—船桨匹配功率—主机负荷与比油耗—航程油耗—CO$_2$排放—航次碳强度”的连续计算过程。但当前仅对一组配置和运行条件进行比较，尚未开展航速、帆面积及季节变化的敏感性分析，不能由本算例给出这些参数的普遍影响规律。
+
+本算例属于实船性能数据基础上的条件性计算，不能直接视为该船在所选航次上的实际油耗预测。若用于实船航次验证，应统一航速口径、运行吃水及装载状态，并使用同一工况下的实测主机油耗和功率进行比较。
+
+此外，本算例未计入波浪增阻、翼帆侧向力引起的附加阻力、多帆协同和轴系传动损失；燃油与CO$_2$仅覆盖主机，未纳入辅机、锅炉及翼帆设备用能。现有结果用于评价所设定航次的主机燃油及碳强度变化，不代表已经完成实测误差验证。
 
 \section{结论}
 \label{sec:conclusion}
