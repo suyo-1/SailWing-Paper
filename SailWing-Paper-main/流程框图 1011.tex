@@ -1,0 +1,102 @@
+\documentclass[tikz,border=6pt]{standalone}
+\usepackage{ctex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usetikzlibrary{arrows.meta}
+
+\newcommand{\bT}[1]{{\heiti\fontsize{9}{10.8}\selectfont #1}}    
+\newcommand{\bB}[1]{{\songti\fontsize{7.4}{9.4}\selectfont #1}} 
+\newcommand{\nT}[1]{{\heiti\fontsize{8}{9.8}\selectfont #1}}
+\newcommand{\nB}[1]{{\songti\fontsize{7}{8.8}\selectfont #1}} 
+
+\begin{document}
+\begin{tikzpicture}[
+  x=1cm, y=1cm,
+  every node/.style={inner sep=1.6pt, outer sep=0pt, text=black},
+  trunk/.style ={rectangle, draw=black, line width=1.1pt,
+                 fill=black!8, align=center},
+  branch/.style={rectangle, draw=black, line width=0.9pt,
+                 fill=black!5, align=center},
+  goal/.style  ={rectangle, draw=black, line width=1.1pt,
+                 fill=black!11, align=center},
+  note/.style  ={rectangle, draw=black, line width=0.6pt,
+                 densely dashed, fill=black!3, align=center},
+  arrow/.style ={-{Stealth[length=2.8mm, width=2.0mm]}, line width=0.8pt},
+  thin/.style  ={-{Stealth[length=2.4mm, width=1.7mm]}, line width=0.8pt},
+  mini/.style  ={-{Stealth[length=2.0mm, width=1.5mm]}, line width=0.5pt, black!70}
+]
+
+
+\node[trunk, minimum width=4.8cm, minimum height=1.1cm, text width=4.7cm] (s1) at (1.7,0)
+  {\bT{输入}};
+
+\node[trunk, minimum width=6.4cm, minimum height=1.4cm, text width=6.4cm] (s2) at (1.7,-2)
+  {\bT{气象处理}\\[1.6pt]
+   \bB{风、浪、流场与航迹时空匹配}};
+
+\node[trunk, minimum width=6.4cm, minimum height=1.8cm, text width=6.4cm] (s3) at (1.7,-4.4)
+  {\bT{风帆推力与工作点寻优}\\[1.6pt]
+   \bB{按相对风条件计算风帆纵向助推力 $F_T$\\以 $F_T$ 最大为共同目标，逐航路点独立寻优}};
+
+\node[trunk, minimum width=6.4cm, minimum height=1.8cm, text width=6.4cm] (s4) at (1.7,-6.8)
+  {\bT{船机桨匹配}\\[1.6pt]
+   \bB{依推力需求在敞水特性曲线上求螺旋桨工作点与推进功率}};
+
+\node[trunk, minimum width=6.4cm, minimum height=1.8cm, text width=6.4cm] (s5) at (1.7,-9.2)
+  {\bT{节油效果与航次碳强度}\\[1.6pt]
+   \bB{有无帆两工况分别沿航线累加主机油耗\\CO$_2$ 排放与航次碳强度}};
+
+\node[trunk, minimum width=4.8cm, minimum height=1.1cm, text width=4.7cm] (s6) at (1.7,-11.4)
+  {\bT{输出}\\[1.6pt]};
+
+
+\draw[arrow] (s1) -- (s2);
+\draw[arrow] (s2) -- (s3);
+\draw[arrow] (s3) -- (s4);
+\draw[arrow] (s4) -- (s5);
+\draw[arrow] (s5.south) -- (s6.north);
+
+
+\node[note, minimum width=4.2cm, minimum height=1.6cm, text width=3.9cm] (b1) at (8.4,-4.4)
+  {\bT{翼帆}\\[1.6pt]
+   \bB{二维极线$C_L(\alpha)$、$C_D(\alpha)$\\三段式拼接}};
+
+\node[note, minimum width=4.2cm, minimum height=1.2cm, text width=3.9cm] (b2) at (8.4,-6)
+  {\bT{转筒帆}\\[1.6pt]
+   \bB{转筒比 $SR$ 下的$C_L$、$C_D$}};
+
+
+\node[note, minimum width=4.8cm, minimum height=1.75cm, text width=4.8cm] (b3) at (8.4,-2)
+  {\nT{气象处理结果}\\[1.6pt]
+   \nB{典型气象工况KMeans 聚类\\
+   航段划分\\}};
+
+\node[note, minimum width=4.8cm, minimum height=1.1cm, text width=4.8cm] (ccs) at (8.4,-9.2)
+  {\nB{按中国船级社（CCS）相关文件计算}};
+
+
+\draw[arrow] (s2.east) -- (b3.west);
+\coordinate (s3fork) at (5.7,-4.4);
+\draw[line width=0.8pt] (s3.east) -- (s3fork);
+\draw[arrow] (s3fork) -- (s3fork |- b1.west) -- (b1.west);
+\draw[arrow] (s3fork) -- (s3fork |- b2.west) -- (b2.west);
+\fill (s3fork) circle (1pt);
+
+
+
+
+
+
+\end{tikzpicture}
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
